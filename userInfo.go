@@ -5,6 +5,7 @@ import (
 	"os/user"
 )
 
+// UserInfo contains user information.
 type UserInfo struct {
 	// Uid is the user ID.
 	// On POSIX systems, this is a decimal number representing the uid.
