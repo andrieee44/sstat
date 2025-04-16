@@ -3,12 +3,8 @@ package sstat
 import (
 	"bufio"
 	"os"
-	"path/filepath"
-	"slices"
 	"strconv"
 	"strings"
-	"time"
-	"unicode/utf8"
 )
 
 // PathReadStr reads the file in located in path. The file is assumed
@@ -40,7 +36,7 @@ func PathReadInt(path string) (int, error) {
 		err error
 	)
 
-	str, err = PathReadLine(path)
+	str, err = PathReadStr(path)
 	if err != nil {
 		return 0, err
 	}
@@ -56,11 +52,11 @@ func PathReadInt(path string) (int, error) {
 // Meminfo returns a map containing the values in /proc/meminfo.
 func Meminfo() (map[string]int, error) {
 	var (
+		keyVal  map[string]int
 		meminfo *os.File
 		scanner *bufio.Scanner
 		fields  []string
 		key     string
-		val     int
 		err     error
 	)
 
