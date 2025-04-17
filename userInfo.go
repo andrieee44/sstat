@@ -7,26 +7,42 @@ import (
 
 // UserInfo contains user information.
 type UserInfo struct {
-	// Uid is the user ID.
-	// On POSIX systems, this is a decimal number representing the uid.
-	// On Windows, this is a security identifier (SID) in a string format.
-	// On Plan 9, this is the contents of /dev/user.
-	Uid string
+	uid      string
+	gid      string
+	username string
+	group    string
+	hostname string
+}
 
-	// Gid is the primary group ID.
-	// On POSIX systems, this is a decimal number representing the gid.
-	// On Windows, this is a SID in a string format.
-	// On Plan 9, this is the contents of /dev/user.
-	Gid string
+// Uid reports the user ID.
+// On POSIX systems, this is a decimal number representing the uid.
+// On Windows, this is a security identifier (SID) in a string format.
+// On Plan 9, this is the contents of /dev/user.
+func (info *UserInfo) Uid() string {
+	return info.uid
+}
 
-	// Username is the login name.
-	Username string
+// Gid reports the primary group ID.
+// On POSIX systems, this is a decimal number representing the gid.
+// On Windows, this is a SID in a string format.
+// On Plan 9, this is the contents of /dev/user.
+func (info *UserInfo) Gid() string {
+	return info.gid
+}
 
-	// Group is the primary group name.
-	Group string
+// Username reports the login name.
+func (info *UserInfo) Username() string {
+	return info.username
+}
 
-	// Hostname is the host name reported by the kernel.
-	Hostname string
+// Group reports the primary group name.
+func (info *UserInfo) Group() string {
+	return info.group
+}
+
+// Hostname reports the host name reported by the kernel.
+func (info *UserInfo) Hostname() string {
+	return info.hostname
 }
 
 func mkUserInfo(account *user.User) (*UserInfo, error) {
@@ -42,13 +58,13 @@ func mkUserInfo(account *user.User) (*UserInfo, error) {
 	}
 
 	userInfo = &UserInfo{
-		Uid:      account.Uid,
-		Gid:      account.Gid,
-		Username: account.Username,
-		Group:    group.Name,
+		uid:      account.Uid,
+		gid:      account.Gid,
+		username: account.Username,
+		group:    group.Name,
 	}
 
-	userInfo.Hostname, err = os.Hostname()
+	userInfo.hostname, err = os.Hostname()
 	if err != nil {
 		return nil, err
 	}

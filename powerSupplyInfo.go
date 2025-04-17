@@ -12,7 +12,7 @@ import (
 // power supply devices are located.
 const PowerSupplyPath string = "/sys/class/power_supply"
 
-// PowerSupplyInfo reports battery information.
+// PowerSupplyInfo reports power supply device information.
 type PowerSupplyInfo struct {
 	info map[string]string
 }

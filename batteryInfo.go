@@ -1,6 +1,6 @@
 package sstat
 
-//
+// BatteryInfo reports battery information.
 type BatteryInfo struct {
 	PowerSupplyInfo
 }
