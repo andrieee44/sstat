@@ -1,51 +1,43 @@
 package sstat
 
-import "path/filepath"
+//
+type BatteryInfo struct {
+	PowerSupplyInfo
+}
 
-// Battery returns battery information in located in [BatteryPath] + basepath.
-// basepath can be "BAT0", for example.
-func Battery(basepath string) (*PowerSupplyInfo, error) {
+// Battery returns battery information in located in [PowerSupplyPath] + basepath.
+func Battery(basepath string) (*BatteryInfo, error) {
 	var (
-		batteryInfo *PowerSupplyInfo
-		err         error
+		powerSupplyInfo *PowerSupplyInfo
+		err             error
 	)
 
-	batteryInfo = new(PowerSupplyInfo)
-
-	batteryInfo.Status, err = PathReadStr(filepath.Join(BatteryPath, basepath, "status"))
+	powerSupplyInfo, err = PowerSupply(basepath)
 	if err != nil {
 		return nil, err
 	}
 
-	batteryInfo.Capacity, err = PathReadInt(filepath.Join(BatteryPath, basepath, "capacity"))
-	if err != nil {
-		return nil, err
-	}
-
-	return batteryInfo, nil
+	return &BatteryInfo{PowerSupplyInfo: *powerSupplyInfo}, nil
 }
 
 // Batteries returns all system batteries and their information.
-func Batteries() ([]*PowerSupplyInfo, error) {
+func Batteries() ([]*BatteryInfo, error) {
 	var (
-		batPaths     []string
-		batteryInfos []*PowerSupplyInfo
-		idx          int
-		err          error
+		powerSupplyInfos []*PowerSupplyInfo
+		batteryInfos     []*BatteryInfo
+		idx              int
+		err              error
 	)
 
-	batPaths, err = filepath.Glob(filepath.Join(BatteryPath, "BAT*"))
+	powerSupplyInfos, err = PowerSupplies("BAT*")
 	if err != nil {
 		return nil, err
 	}
 
-	batteryInfos = make([]*PowerSupplyInfo, len(batPaths))
+	batteryInfos = make([]*BatteryInfo, len(powerSupplyInfos))
 
-	for idx = range batPaths {
-		batteryInfos[idx], err = Battery(batPaths[idx])
-		if err != nil {
-			return nil, err
-		}
+	for idx = range powerSupplyInfos {
+		batteryInfos[idx] = &BatteryInfo{PowerSupplyInfo: *powerSupplyInfos[idx]}
 	}
 
 	return batteryInfos, nil

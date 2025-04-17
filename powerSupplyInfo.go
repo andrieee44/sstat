@@ -1,99 +1,119 @@
 package sstat
 
+import (
+	"bufio"
+	"fmt"
+	"os"
+	"path/filepath"
+	"strings"
+)
+
 // PowerSupplyPath is the directory where the information for
-// system power supplies are located.
+// power supply devices are located.
 const PowerSupplyPath string = "/sys/class/power_supply"
 
 // PowerSupplyInfo reports battery information.
 type PowerSupplyInfo struct {
-	validKeys    map[string]bool
-	manufacturer string
-	modelName    string
-	name         string
-	psType       string
-	serialNumber string
+	info map[string]string
 }
 
-func (info *PowerSupplyInfo) validKey(key string) bool {
-	var ok bool
+// UeventKey reports the value of the specified uevent key.
+func (info *PowerSupplyInfo) UeventKey(key string) (string, bool) {
+	var (
+		value string
+		ok    bool
+	)
 
-	_, ok = info.validKeys[key]
+	value, ok = info.info[key]
 
-	return ok
+	return value, ok
 }
 
 // Manufacturer reports the name of the device manufacturer.
 func (info *PowerSupplyInfo) Manufacturer() (string, bool) {
-	return info.manufacturer, info.validKey("POWER_SUPPLY_MANUFACTURER")
+	return info.UeventKey("POWER_SUPPLY_MANUFACTURER")
 }
 
 // ModelName reports the name of the device model.
 func (info *PowerSupplyInfo) ModelName() (string, bool) {
-	return info.modelName, info.validKey("POWER_SUPPLY_MODEL_NAME")
+	return info.UeventKey("POWER_SUPPLY_MODEL_NAME")
 }
 
 // SerialNumber reports the serial number of the device.
 func (info *PowerSupplyInfo) SerialNumber() (string, bool) {
-	return info.serialNumber, info.validKey("POWER_SUPPLY_SERIAL_NUMBER")
+	return info.UeventKey("POWER_SUPPLY_SERIAL_NUMBER")
 }
 
 // Type reports the main type of the supply.
 // Valid values are "Battery", "UPS", "Mains", "USB" and "Wireless".
 func (info *PowerSupplyInfo) Type() (string, bool) {
-	return info.psType, info.validKey("POWER_SUPPLY_TYPE")
+	return info.UeventKey("POWER_SUPPLY_TYPE")
 }
 
 // Name reports the name of the device.
 func (info *PowerSupplyInfo) Name() (string, bool) {
-	return info.name, info.validKey("POWER_SUPPLY_NAME")
+	return info.UeventKey("POWER_SUPPLY_NAME")
 }
 
-// PowerSupply returns battery information in located in
-// [BatteryPath] + basepath.
-// basepath can be "BAT0", for example.
+// PowerSupply returns power supply device information in
+// [PowerSupplyPath] + basepath.
 func PowerSupply(basepath string) (*PowerSupplyInfo, error) {
 	var (
 		powerSupplyInfo *PowerSupplyInfo
+		uevent          *os.File
+		scanner         *bufio.Scanner
+		fields          []string
 		err             error
 	)
 
-	batteryInfo = new(BatteryInfo)
+	powerSupplyInfo = new(PowerSupplyInfo)
 
-	batteryInfo.Status, err = PathReadStr(filepath.Join(BatteryPath, basepath, "status"))
+	uevent, err = os.Open(filepath.Join(PowerSupplyPath, basepath, "uevent"))
 	if err != nil {
 		return nil, err
 	}
 
-	batteryInfo.Capacity, err = PathReadInt(filepath.Join(BatteryPath, basepath, "capacity"))
+	scanner = bufio.NewScanner(uevent)
+	for scanner.Scan() {
+		fields = strings.Split(scanner.Text(), "=")
+		if len(fields) != 2 {
+			return nil, fmt.Errorf("%s: invalid uevent format", uevent.Name())
+		}
+
+		powerSupplyInfo.info[fields[0]] = fields[1]
+	}
+
+	err = scanner.Err()
 	if err != nil {
 		return nil, err
 	}
 
-	return batteryInfo, nil
+	return powerSupplyInfo, uevent.Close()
 }
 
-// PowerSupplies returns all system batteries and their information.
-func PowerSupplies() ([]*BatteryInfo, error) {
+// PowerSupplies returns all of the power supply device information in
+// [PowerSupplyPath] + glob.
+func PowerSupplies(glob string) ([]*PowerSupplyInfo, error) {
 	var (
-		batPaths     []string
-		batteryInfos []*BatteryInfo
-		idx          int
-		err          error
+		powerSupplyPaths []string
+		powerSupplyInfos []*PowerSupplyInfo
+		idx              int
+		err              error
 	)
 
-	batPaths, err = filepath.Glob(filepath.Join(BatteryPath, "BAT*"))
+	powerSupplyPaths, err = filepath.Glob(filepath.Join(PowerSupplyPath, glob))
 	if err != nil {
 		return nil, err
 	}
 
-	batteryInfos = make([]*BatteryInfo, len(batPaths))
+	powerSupplyInfos = make([]*PowerSupplyInfo, len(powerSupplyPaths))
 
-	for idx = range batPaths {
-		batteryInfos[idx], err = Battery(batPaths[idx])
+	for idx = range powerSupplyPaths {
+		powerSupplyInfos[idx], err = PowerSupply(powerSupplyPaths[idx])
 		if err != nil {
 			return nil, err
 		}
 	}
 
-	return batteryInfos, nil
+	return powerSupplyInfos, nil
 }

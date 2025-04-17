@@ -8,9 +8,7 @@ import (
 )
 
 // PathReadStr reads the file in located in path. The file is assumed
-// to have only one line delimited by a newline. Useful for reading
-// battery information from /sys/class/power_supply/BAT0/status for
-// example.
+// to have only one line delimited by a newline.
 func PathReadStr(path string) (string, error) {
 	var (
 		buf []byte
@@ -27,8 +25,7 @@ func PathReadStr(path string) (string, error) {
 
 // PathReadInt reads the file in located in path and converts the contents of
 // the file to an integer. The file is assumed to have only one line
-// delimited by a newline. Useful for reading battery information from
-// /sys/class/power_supply/BAT0/capacity for example.
+// delimited by a newline.
 func PathReadInt(path string) (int, error) {
 	var (
 		str string
