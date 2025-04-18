@@ -7,6 +7,7 @@ import (
 	"github.com/andrieee44/sstat"
 )
 
+// Get the current battery operating status.
 func ExamplePathReadStr() {
 	var (
 		status string
@@ -21,6 +22,7 @@ func ExamplePathReadStr() {
 	fmt.Println("BAT0 status:", status)
 }
 
+// Get the current remaining battery percentage.
 func ExamplePathReadInt() {
 	var (
 		capacity int

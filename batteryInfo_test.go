@@ -6,6 +6,7 @@ import (
 	"github.com/andrieee44/sstat"
 )
 
+// Get battery information for BAT0.
 func ExampleBattery() {
 	var (
 		batteryInfo *sstat.BatteryInfo
@@ -20,6 +21,7 @@ func ExampleBattery() {
 	fmt.Printf("%+v\n", batteryInfo)
 }
 
+// Get all battery information.
 func ExampleBatteries() {
 	var (
 		batteryInfos []*sstat.BatteryInfo

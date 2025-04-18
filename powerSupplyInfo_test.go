@@ -6,6 +6,7 @@ import (
 	"github.com/andrieee44/sstat"
 )
 
+// Get the name of ADP0.
 func ExamplePowerSupply() {
 	var (
 		powerSupplyInfo *sstat.PowerSupplyInfo
@@ -17,9 +18,10 @@ func ExamplePowerSupply() {
 		panic(err)
 	}
 
-	fmt.Printf("%+v\n", powerSupplyInfo)
+	fmt.Println(powerSupplyInfo.Name())
 }
 
+// Get the type of all power supplies available.
 func ExamplePowerSupplies() {
 	var (
 		powerSupplyInfos []*sstat.PowerSupplyInfo
@@ -27,16 +29,17 @@ func ExamplePowerSupplies() {
 		err              error
 	)
 
-	powerSupplyInfos, err = sstat.PowerSupplies("ADP*")
+	powerSupplyInfos, err = sstat.PowerSupplies("*")
 	if err != nil {
 		panic(err)
 	}
 
 	for idx = range powerSupplyInfos {
-		fmt.Printf("%+v\n", powerSupplyInfos[idx])
+		fmt.Println(powerSupplyInfos[idx].Type())
 	}
 }
 
+// Get the power supply manufacturer of ADP0.
 func ExamplePowerSupplyInfo_UeventKey() {
 	var (
 		powerSupplyInfo *sstat.PowerSupplyInfo

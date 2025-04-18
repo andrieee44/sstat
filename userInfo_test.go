@@ -6,6 +6,7 @@ import (
 	"github.com/andrieee44/sstat"
 )
 
+// Get the username of the current user.
 func ExampleCurrentUser() {
 	var (
 		userInfo *sstat.UserInfo
@@ -17,9 +18,10 @@ func ExampleCurrentUser() {
 		panic(err)
 	}
 
-	fmt.Printf("%+v\n", userInfo)
+	fmt.Println(userInfo.Username())
 }
 
+// Get the userid of root.
 func ExampleLookupUser() {
 	var (
 		userInfo *sstat.UserInfo
@@ -31,9 +33,10 @@ func ExampleLookupUser() {
 		panic(err)
 	}
 
-	fmt.Printf("%+v\n", userInfo)
+	fmt.Println(userInfo.Uid())
 }
 
+// Get the group name of userid 0.
 func ExampleLookupUserId() {
 	var (
 		userInfo *sstat.UserInfo
@@ -45,5 +48,5 @@ func ExampleLookupUserId() {
 		panic(err)
 	}
 
-	fmt.Printf("%+v\n", userInfo)
+	fmt.Printf(userInfo.Group())
 }
