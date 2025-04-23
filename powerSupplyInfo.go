@@ -2,8 +2,7 @@ package sstat
 
 import (
 	"bufio"
-	"fmt"
-	"os"
+	"errors"
 	"path/filepath"
 	"strings"
 )
@@ -62,9 +61,6 @@ func (info *PowerSupplyInfo) Name() (value string, ok bool) {
 func PowerSupply(basepath string) (*PowerSupplyInfo, error) {
 	var (
 		powerSupplyInfo *PowerSupplyInfo
-		uevent          *os.File
-		scanner         *bufio.Scanner
-		fields          []string
 		err             error
 	)
 
@@ -72,27 +68,20 @@ func PowerSupply(basepath string) (*PowerSupplyInfo, error) {
 		info: make(map[string]string),
 	}
 
-	uevent, err = os.Open(filepath.Join(PowerSupplyPath, basepath, "uevent"))
-	if err != nil {
-		return nil, err
-	}
+	err = ScanFile(filepath.Join(PowerSupplyPath, basepath, "uevent"), bufio.ScanLines, func(text string) (bool, error) {
+		var fields []string
 
-	scanner = bufio.NewScanner(uevent)
-	for scanner.Scan() {
-		fields = strings.Split(scanner.Text(), "=")
+		fields = strings.Split(text, "=")
 		if len(fields) != 2 {
-			return nil, fmt.Errorf("%s: invalid uevent format", uevent.Name())
+			return false, errors.New("invalid uevent format")
 		}
 
 		powerSupplyInfo.info[fields[0]] = fields[1]
-	}
 
-	err = scanner.Err()
-	if err != nil {
-		return nil, err
-	}
+		return true, nil
+	})
 
-	return powerSupplyInfo, uevent.Close()
+	return powerSupplyInfo, err
 }
 
 // PowerSupplies returns all power supply device information in

@@ -7,7 +7,7 @@ package sstat
 // [sysfs-class-power] itself is missing documentation.
 // For missing uevent keys use the method [PowerSupplyInfo.Key].
 //
-// [sysfs-class-power]: https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux.git/tree/Documentation/ABI/testing/sysfs-class-power?h=v6.14.3
+// [sysfs-class-power]: https://www.kernel.org/doc/Documentation/ABI/testing/sysfs-class-power
 type BatteryInfo struct {
 	PowerSupplyInfo
 }
