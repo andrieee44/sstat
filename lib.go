@@ -4,7 +4,6 @@ import (
 	"bufio"
 	"os"
 	"strconv"
-	"strings"
 )
 
 // PathReadStr reads the file in located in path. The file is assumed
@@ -46,44 +45,43 @@ func PathReadInt(path string) (int, error) {
 	return num, nil
 }
 
-// Meminfo returns a map containing the values in /proc/meminfo.
-func Meminfo() (map[string]int, error) {
+// Scan opens the file in path, splitting the contents
+// of the file depending on the split function.
+// The split text is then sent to the parse function
+// with ok == false stopping the further splitting.
+//
+// See the source code of [NewMemInfo] for an example usage.
+func ScanFile(path string, split bufio.SplitFunc, parser func(text string) (ok bool, err error)) error {
 	var (
-		keyVal  map[string]int
-		meminfo *os.File
+		file    *os.File
 		scanner *bufio.Scanner
-		fields  []string
-		key     string
+		ok      bool
 		err     error
 	)
 
-	keyVal = make(map[string]int)
-
-	meminfo, err = os.Open("/proc/meminfo")
+	file, err = os.Open(path)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	scanner = bufio.NewScanner(meminfo)
+	scanner = bufio.NewScanner(file)
+	scanner.Split(split)
 
 	for scanner.Scan() {
-		fields = strings.Fields(scanner.Text())
-		key = fields[0][:len(fields[0])-1]
-
-		keyVal[key], err = strconv.Atoi(fields[1])
+		ok, err = parser(scanner.Text())
 		if err != nil {
-			return nil, err
+			return err
+		}
+
+		if !ok {
+			break
 		}
 	}
 
-	if scanner.Err() != nil {
-		return nil, err
-	}
-
-	err = meminfo.Close()
+	err = scanner.Err()
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	return keyVal, nil
+	return file.Close()
 }

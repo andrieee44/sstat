@@ -1,38 +1,68 @@
-package sstat_test
+package sstat
 
 import (
-	"fmt"
-	"path/filepath"
-
-	"github.com/andrieee44/sstat"
+	"os"
+	"testing"
 )
 
-// Get the current battery operating status.
-func ExamplePathReadStr() {
-	var (
-		status string
-		err    error
-	)
-
-	status, err = sstat.PathReadStr(filepath.Join(sstat.PowerSupplyPath, "BAT0", "status"))
+func tErrorIf(t *testing.T, err error) {
 	if err != nil {
-		panic(err)
+		t.Error(err)
 	}
-
-	fmt.Println("BAT0 status:", status)
 }
 
-// Get the current remaining battery percentage.
-func ExamplePathReadInt() {
+func tmpFile(content string) (string, error) {
 	var (
-		capacity int
-		err      error
+		file *os.File
+		err  error
 	)
 
-	capacity, err = sstat.PathReadInt(filepath.Join(sstat.PowerSupplyPath, "BAT0", "capacity"))
+	file, err = os.CreateTemp(os.TempDir(), "sstat-test-")
 	if err != nil {
-		panic(err)
+		return "", err
 	}
 
-	fmt.Println("BAT0 percentage:", capacity)
+	_, err = file.Write([]byte(content))
+	if err != nil {
+		return "", err
+	}
+
+	return file.Name(), nil
+}
+
+func TestPathReadStr(t *testing.T) {
+	var (
+		path, value string
+		err         error
+	)
+
+	path, err = tmpFile("hello\n")
+	tErrorIf(t, err)
+
+	value, err = PathReadStr(path)
+	tErrorIf(t, err)
+	tErrorIf(t, os.Remove(path))
+
+	if value != "hello" {
+		t.Errorf("expected %q, got %q", "hello", value)
+	}
+}
+
+func TestPathReadInt(t *testing.T) {
+	var (
+		path  string
+		value int
+		err   error
+	)
+
+	path, err = tmpFile("123\n")
+	tErrorIf(t, err)
+
+	value, err = PathReadInt(path)
+	tErrorIf(t, err)
+	tErrorIf(t, os.Remove(path))
+
+	if value != 123 {
+		t.Errorf("expected %d, got %d", 123, value)
+	}
 }

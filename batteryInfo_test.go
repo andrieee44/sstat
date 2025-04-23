@@ -1,40 +1,46 @@
-package sstat_test
+package sstat
 
 import (
-	"fmt"
-
-	"github.com/andrieee44/sstat"
+	"errors"
+	"io/fs"
+	"os"
+	"path/filepath"
+	"testing"
 )
 
-// Get battery information for BAT0.
-func ExampleBattery() {
-	var (
-		batteryInfo *sstat.BatteryInfo
-		err         error
-	)
+func checkBat(t *testing.T) bool {
+	var err error
 
-	batteryInfo, err = sstat.Battery("BAT0")
-	if err != nil {
-		panic(err)
+	_, err = os.Stat(filepath.Join(PowerSupplyPath, "BAT0"))
+	if errors.Is(err, fs.ErrNotExist) {
+		return false
 	}
 
-	fmt.Printf("%+v\n", batteryInfo)
+	if err != nil {
+		t.Error(err)
+	}
+
+	return true
 }
 
-// Get all battery information.
-func ExampleBatteries() {
-	var (
-		batteryInfos []*sstat.BatteryInfo
-		idx          int
-		err          error
-	)
+func TestBattery(t *testing.T) {
+	var err error
 
-	batteryInfos, err = sstat.Batteries()
-	if err != nil {
-		panic(err)
+	if !checkBat(t) {
+		return
 	}
 
-	for idx = range batteryInfos {
-		fmt.Printf("%+v\n", batteryInfos[idx])
+	_, err = Battery("BAT0")
+	tErrorIf(t, err)
+}
+
+func TestBatteries(t *testing.T) {
+	var err error
+
+	if !checkBat(t) {
+		return
 	}
+
+	_, err = Batteries()
+	tErrorIf(t, err)
 }

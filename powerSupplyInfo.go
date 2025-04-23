@@ -17,42 +17,44 @@ type PowerSupplyInfo struct {
 	info map[string]string
 }
 
-// UeventKey reports the value of the specified uevent key.
-func (info *PowerSupplyInfo) UeventKey(key string) (string, bool) {
-	var (
-		value string
-		ok    bool
-	)
-
+// Key reports the value of the specified uevent key
+// and whether if the key is valid or not.
+func (info *PowerSupplyInfo) Key(key string) (value string, ok bool) {
 	value, ok = info.info[key]
 
 	return value, ok
 }
 
 // Manufacturer reports the name of the device manufacturer.
-func (info *PowerSupplyInfo) Manufacturer() (string, bool) {
-	return info.UeventKey("POWER_SUPPLY_MANUFACTURER")
+func (info *PowerSupplyInfo) Manufacturer() (value string, ok bool) {
+	return info.Key("POWER_SUPPLY_MANUFACTURER")
 }
 
 // ModelName reports the name of the device model.
-func (info *PowerSupplyInfo) ModelName() (string, bool) {
-	return info.UeventKey("POWER_SUPPLY_MODEL_NAME")
+func (info *PowerSupplyInfo) ModelName() (value string, ok bool) {
+	return info.Key("POWER_SUPPLY_MODEL_NAME")
 }
 
 // SerialNumber reports the serial number of the device.
-func (info *PowerSupplyInfo) SerialNumber() (string, bool) {
-	return info.UeventKey("POWER_SUPPLY_SERIAL_NUMBER")
+func (info *PowerSupplyInfo) SerialNumber() (value string, ok bool) {
+	return info.Key("POWER_SUPPLY_SERIAL_NUMBER")
 }
 
 // Type reports the main type of the supply.
-// Valid values are "Battery", "UPS", "Mains", "USB" and "Wireless".
-func (info *PowerSupplyInfo) Type() (string, bool) {
-	return info.UeventKey("POWER_SUPPLY_TYPE")
+//
+// Valid values are:
+//   - "Battery"
+//   - "UPS"
+//   - "Mains"
+//   - "USB"
+//   - "Wireless"
+func (info *PowerSupplyInfo) Type() (value string, ok bool) {
+	return info.Key("POWER_SUPPLY_TYPE")
 }
 
 // Name reports the name of the device.
-func (info *PowerSupplyInfo) Name() (string, bool) {
-	return info.UeventKey("POWER_SUPPLY_NAME")
+func (info *PowerSupplyInfo) Name() (value string, ok bool) {
+	return info.Key("POWER_SUPPLY_NAME")
 }
 
 // PowerSupply returns power supply device information in
@@ -66,7 +68,9 @@ func PowerSupply(basepath string) (*PowerSupplyInfo, error) {
 		err             error
 	)
 
-	powerSupplyInfo = new(PowerSupplyInfo)
+	powerSupplyInfo = &PowerSupplyInfo{
+		info: make(map[string]string),
+	}
 
 	uevent, err = os.Open(filepath.Join(PowerSupplyPath, basepath, "uevent"))
 	if err != nil {
@@ -91,7 +95,7 @@ func PowerSupply(basepath string) (*PowerSupplyInfo, error) {
 	return powerSupplyInfo, uevent.Close()
 }
 
-// PowerSupplies returns all of the power supply device information in
+// PowerSupplies returns all power supply device information in
 // [PowerSupplyPath] + glob.
 func PowerSupplies(glob string) ([]*PowerSupplyInfo, error) {
 	var (

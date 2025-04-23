@@ -1,52 +1,24 @@
-package sstat_test
+package sstat
 
-import (
-	"fmt"
+import "testing"
 
-	"github.com/andrieee44/sstat"
-)
+func TestCurrentUser(t *testing.T) {
+	var err error
 
-// Get the username of the current user.
-func ExampleCurrentUser() {
-	var (
-		userInfo *sstat.UserInfo
-		err      error
-	)
-
-	userInfo, err = sstat.CurrentUser()
-	if err != nil {
-		panic(err)
-	}
-
-	fmt.Println(userInfo.Username())
+	_, err = CurrentUser()
+	tErrorIf(t, err)
 }
 
-// Get the userid of root.
-func ExampleLookupUser() {
-	var (
-		userInfo *sstat.UserInfo
-		err      error
-	)
+func TestLookupUser(t *testing.T) {
+	var err error
 
-	userInfo, err = sstat.LookupUser("root")
-	if err != nil {
-		panic(err)
-	}
-
-	fmt.Println(userInfo.Uid())
+	_, err = LookupUser("root")
+	tErrorIf(t, err)
 }
 
-// Get the group name of userid 0.
-func ExampleLookupUserId() {
-	var (
-		userInfo *sstat.UserInfo
-		err      error
-	)
+func TestLookupUserId(t *testing.T) {
+	var err error
 
-	userInfo, err = sstat.LookupUserId("0")
-	if err != nil {
-		panic(err)
-	}
-
-	fmt.Printf(userInfo.Group())
+	_, err = LookupUserId("0")
+	tErrorIf(t, err)
 }
