@@ -9,8 +9,9 @@ import (
 // Print the current memory percentage.
 func ExampleNewMemInfo() {
 	var (
-		memInfo *sstat.MemInfo
-		err     error
+		memInfo                            *sstat.MemInfo
+		memTotal, memFree, buffers, cached int
+		err                                error
 	)
 
 	memInfo, err = sstat.NewMemInfo()
@@ -18,5 +19,12 @@ func ExampleNewMemInfo() {
 		panic(err)
 	}
 
-	fmt.Println(memInfo)
+	memInfo.Populate(map[string]*int{
+		"MemTotal": &memTotal,
+		"MemFree":  &memFree,
+		"Buffers":  &buffers,
+		"Cached":   &cached,
+	})
+
+	fmt.Printf("Used memory: %g%%\n", float64(memTotal-memFree-buffers-cached)/float64(memTotal)*100)
 }

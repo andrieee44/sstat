@@ -9,11 +9,35 @@ import (
 
 // MemInfo reports memory usage information from /proc/meminfo.
 // Documentation for methods are taken from
-// [proc_meminfo(5)]. Documentation is not always present
+// [proc_meminfo(5)]. Documentation is not always present.
 //
 // [proc_meminfo(5)]: https://man.archlinux.org/man/proc_meminfo.5.en
 type MemInfo struct {
 	info map[string]int
+}
+
+// Populate sets the values of every integer
+// pointer associated with a key.
+func (info *MemInfo) Populate(vars map[string]*int) error {
+	var (
+		key     string
+		value   *int
+		missing []string
+		ok      bool
+	)
+
+	for key, value = range vars {
+		*value, ok = info.Key(key)
+		if !ok {
+			missing = append(missing, key)
+		}
+	}
+
+	if len(missing) != 0 {
+		return fmt.Errorf("%s: missing MemInfo key(s)", strings.Join(missing, ", "))
+	}
+
+	return nil
 }
 
 // Key reports the value of the specified /proc/meminfo parameter

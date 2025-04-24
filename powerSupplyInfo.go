@@ -3,6 +3,7 @@ package sstat
 import (
 	"bufio"
 	"errors"
+	"fmt"
 	"path/filepath"
 	"strings"
 )
@@ -14,6 +15,30 @@ const PowerSupplyPath string = "/sys/class/power_supply"
 // PowerSupplyInfo reports power supply device information.
 type PowerSupplyInfo struct {
 	info map[string]string
+}
+
+// Populate sets the values of every integer
+// pointer associated with a key.
+func (info *PowerSupplyInfo) Populate(vars map[string]*string) error {
+	var (
+		key     string
+		value   *string
+		missing []string
+		ok      bool
+	)
+
+	for key, value = range vars {
+		*value, ok = info.Key(key)
+		if !ok {
+			missing = append(missing, key)
+		}
+	}
+
+	if len(missing) != 0 {
+		return fmt.Errorf("%s: missing PowerSupplyInfo uevent key(s)", strings.Join(missing, ", "))
+	}
+
+	return nil
 }
 
 // Key reports the value of the specified uevent key
