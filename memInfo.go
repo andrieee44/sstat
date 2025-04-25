@@ -507,7 +507,7 @@ func NewMemInfo() (*MemInfo, error) {
 		)
 
 		fields = strings.Fields(text)
-		if len(fields) != 3 {
+		if len(fields) != 2 && len(fields) != 3 {
 			return false, fmt.Errorf("/proc/meminfo: invalid meminfo format")
 		}
 

@@ -127,7 +127,7 @@ func PowerSupplies(glob string) ([]*PowerSupplyInfo, error) {
 	powerSupplyInfos = make([]*PowerSupplyInfo, len(powerSupplyPaths))
 
 	for idx = range powerSupplyPaths {
-		powerSupplyInfos[idx], err = PowerSupply(powerSupplyPaths[idx])
+		powerSupplyInfos[idx], err = PowerSupply(filepath.Base(powerSupplyPaths[idx]))
 		if err != nil {
 			return nil, err
 		}
