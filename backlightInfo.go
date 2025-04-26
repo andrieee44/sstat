@@ -10,7 +10,10 @@ import (
 // backlights are located.
 const BacklightPath string = "/sys/class/backlight"
 
-// BacklightInfo reports backlight information.
+// BacklightInfo reports backlight information. Documentation for the
+// object methods are taken from [sysfs-class-power].
+//
+// [sysfs-class-power]: https://www.kernel.org/doc/Documentation/ABI/stable/sysfs-class-backlight
 type BacklightInfo struct {
 	blPower          int
 	brightness       int
