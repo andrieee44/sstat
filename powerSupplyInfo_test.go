@@ -1,13 +1,14 @@
 package sstat
 
 import (
+	"path/filepath"
 	"testing"
 )
 
 func TestPowerSupply(t *testing.T) {
 	var err error
 
-	if !checkBat(t) {
+	if !checkPath(t, filepath.Join(PowerSupplyPath, "BAT0")) {
 		return
 	}
 
@@ -18,7 +19,7 @@ func TestPowerSupply(t *testing.T) {
 func TestPowerSupplies(t *testing.T) {
 	var err error
 
-	if !checkBat(t) {
+	if !checkPath(t, filepath.Join(PowerSupplyPath, "BAT0")) {
 		return
 	}
 

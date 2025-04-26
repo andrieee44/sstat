@@ -1,9 +1,26 @@
 package sstat
 
 import (
+	"errors"
+	"io/fs"
 	"os"
 	"testing"
 )
+
+func checkPath(t *testing.T, path string) bool {
+	var err error
+
+	_, err = os.Stat(path)
+	if errors.Is(err, fs.ErrNotExist) {
+		return false
+	}
+
+	if err != nil {
+		t.Error(err)
+	}
+
+	return true
+}
 
 func tErrorIf(t *testing.T, err error) {
 	if err != nil {

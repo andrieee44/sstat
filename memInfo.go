@@ -7,7 +7,10 @@ import (
 	"strings"
 )
 
-// MemInfo reports memory usage information from /proc/meminfo.
+// MemInfoPath is the path to the file where memory information is stored.
+const MemInfoPath string = "/proc/meminfo"
+
+// MemInfo reports memory usage information from [MemInfoPath].
 // Documentation for methods are taken from
 // [proc_meminfo(5)]. Documentation is not always present.
 //
@@ -40,7 +43,7 @@ func (info *MemInfo) Populate(vars map[string]*int) error {
 	return nil
 }
 
-// Key reports the value of the specified /proc/meminfo parameter
+// Key reports the value of the specified key in [MemInfoPath]
 // and whether if the key is valid or not.
 func (info *MemInfo) Key(key string) (value int, ok bool) {
 	value, ok = info.info[key]
@@ -488,7 +491,7 @@ func (info *MemInfo) DirectMap1G() (value int, ok bool) {
 	return info.Key("DirectMap1G")
 }
 
-// NewMemInfo returns memory usage information from /proc/meminfo.
+// NewMemInfo returns memory usage information from [MemInfoPath].
 func NewMemInfo() (*MemInfo, error) {
 	var (
 		memInfo *MemInfo
@@ -499,7 +502,7 @@ func NewMemInfo() (*MemInfo, error) {
 		info: make(map[string]int),
 	}
 
-	err = ScanFile("/proc/meminfo", bufio.ScanLines, func(text string) (bool, error) {
+	err = ScanFile(MemInfoPath, bufio.ScanLines, func(text string) (bool, error) {
 		var (
 			fields []string
 			value  int
@@ -508,7 +511,7 @@ func NewMemInfo() (*MemInfo, error) {
 
 		fields = strings.Fields(text)
 		if len(fields) != 2 && len(fields) != 3 {
-			return false, fmt.Errorf("/proc/meminfo: invalid meminfo format")
+			return false, fmt.Errorf("%s: invalid meminfo format", MemInfoPath)
 		}
 
 		value, err = strconv.Atoi(fields[1])
