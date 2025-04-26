@@ -19,7 +19,7 @@ type BacklightInfo struct {
 	brightness       int
 	actualBrightness int
 	maxBrightness    int
-	typ              string
+	typ, name        string
 }
 
 // BlPower reports BACKLIGHT power, values are
@@ -63,11 +63,16 @@ func (info *BacklightInfo) MaxBrightness() (value int) {
 // interfaces.
 //
 // Valid values are:
-//   - "firmware": The driver uses a standard firmware interface
-//   - "platform": The driver uses a platform-specific interface
-//   - "raw": The driver controls hardware registers directly
+//   - "firmware" : The driver uses a standard firmware interface
+//   - "platform" : The driver uses a platform-specific interface
+//   - "raw"      : The driver controls hardware registers directly
 func (info *BacklightInfo) Type() (value string) {
 	return info.typ
+}
+
+// Name reports the name of the backlight.
+func (info *BacklightInfo) Name() (value string) {
+	return info.name
 }
 
 func (info *BacklightInfo) mapIntPtrs() map[string]*int {
@@ -79,10 +84,10 @@ func (info *BacklightInfo) mapIntPtrs() map[string]*int {
 	}
 }
 
-func serveBacklight(backlightInfoChans map[string]<-chan *BacklightInfo, errChan chan<- error, basepath string) {
+func serveBacklight(backlightChans map[string]<-chan *BacklightInfo, errChan chan<- error, basepath string) {
 	var (
 		backlightInfo, newBacklightInfo *BacklightInfo
-		backlightInfoChan               chan *BacklightInfo
+		backlightChan                   chan *BacklightInfo
 		watcher                         *fsnotify.Watcher
 		event                           fsnotify.Event
 		infoPath, infoName              string
@@ -112,9 +117,9 @@ func serveBacklight(backlightInfoChans map[string]<-chan *BacklightInfo, errChan
 		}
 	}
 
-	backlightInfoChan = make(chan *BacklightInfo)
-	backlightInfoChans[basepath] = backlightInfoChan
-	backlightInfoChan <- backlightInfo
+	backlightChan = make(chan *BacklightInfo)
+	backlightChans[basepath] = backlightChan
+	backlightChan <- backlightInfo
 
 	for {
 		newBacklightInfo = new(BacklightInfo)
@@ -146,23 +151,24 @@ func serveBacklight(backlightInfoChans map[string]<-chan *BacklightInfo, errChan
 			return
 		}
 
-		backlightInfoChan <- newBacklightInfo
+		backlightChan <- newBacklightInfo
 		backlightInfo = newBacklightInfo
 	}
 }
 
-// BacklightInfoChan returns map of channels that sends backlight information
-// for each backlight found in [BacklightPath] + glob.
-func BacklightInfoChan(glob string) (map[string]<-chan *BacklightInfo, <-chan error, error) {
+// BacklightChans returns a map of channels that sends
+// backlight information for each backlight found in
+// [BacklightPath] + glob.
+func BacklightChans(glob string) (map[string]<-chan *BacklightInfo, <-chan error, error) {
 	var (
-		backlightInfoChans map[string]<-chan *BacklightInfo
-		errChan            chan error
-		backlightPaths     []string
-		path               string
-		err                error
+		backlightChans map[string]<-chan *BacklightInfo
+		errChan        chan error
+		backlightPaths []string
+		path           string
+		err            error
 	)
 
-	backlightInfoChans = make(map[string]<-chan *BacklightInfo)
+	backlightChans = make(map[string]<-chan *BacklightInfo)
 	errChan = make(chan error)
 
 	backlightPaths, err = filepath.Glob(filepath.Join(BacklightPath, glob))
@@ -171,10 +177,10 @@ func BacklightInfoChan(glob string) (map[string]<-chan *BacklightInfo, <-chan er
 	}
 
 	for _, path = range backlightPaths {
-		go serveBacklight(backlightInfoChans, errChan, filepath.Base(path))
+		go serveBacklight(backlightChans, errChan, filepath.Base(path))
 	}
 
-	return backlightInfoChans, errChan, nil
+	return backlightChans, errChan, nil
 }
 
 // Backlight returns backlight information in
@@ -187,7 +193,9 @@ func Backlight(basepath string) (*BacklightInfo, error) {
 		err           error
 	)
 
-	backlightInfo = new(BacklightInfo)
+	backlightInfo = &BacklightInfo{
+		name: basepath,
+	}
 
 	for key, value = range backlightInfo.mapIntPtrs() {
 		*value, err = PathReadInt(filepath.Join(BacklightPath, basepath, key))
